@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARM Service Desk</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Модальное окно входа -->
+    <div id="loginModal" class="modal active">
+        <div class="modal-content">
+            <h2>🔐 Вход в систему</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Логин:</label>
+                    <select id="username" required>
+                        <option value="">Выберите пользователя</option>
+                        <option value="user">Обычный пользователь</option>
+                        <option value="admin">Администратор</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn-primary">Войти</button>
+            </form>
+            <div class="login-hint">
+                <p><strong>Тестовые данные:</strong></p>
+                <p>👤 user / user123</p>
+                <p>⚙️ admin / admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основное приложение -->
+    <div id="app" class="hidden">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🖥️ ARM Service Desk</h1>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                    <button onclick="logout()" class="btn-secondary">Выйти</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Навигация -->
+        <nav class="navbar">
+            <button class="nav-btn active" data-tab="tickets">🎫 Заявки</button>
+            <button class="nav-btn" data-tab="inventory">📋 Инвентаризация</button>
+            <button class="nav-btn" data-tab="admin" id="adminTab" style="display: none;">⚙️ Администрирование</button>
+        </nav>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Вкладка Заявки -->
+            <div id="tickets-tab" class="tab-content active">
+                <div class="tab-header">
+                    <h2>Создание заявки</h2>
+                </div>
+                
+                <!-- Форма создания заявки -->
+                <div class="card">
+                    <form id="ticketForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Выберите АРМ:*</label>
+                                <select id="ticketArmId" required>
+                                    <option value="">Загрузка АРМ...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Тип проблемы:*</label>
+                                <select id="ticketProblemType" required>
+                                    <option value="">Выберите тип</option>
+                                    <option value="hardware">🖥️ Аппаратная</option>
+                                    <option value="software">💻 Программная</option>
+                                    <option value="network">🌐 Сетевая</option>
+                                    <option value="other">❓ Другая</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Приоритет:*</label>
+                                <select id="ticketPriority" required>
+                                    <option value="">Выберите приоритет</option>
+                                    <option value="low">🟢 Низкий</option>
+                                    <option value="medium">🟡 Средний</option>
+                                    <option value="high">🟠 Высокий</option>
+                                    <option value="critical">🔴 Критический</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Описание проблемы:*</label>
+                            <textarea id="ticketDescription" rows="4" required 
+                                      placeholder="Подробно опишите проблему..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-primary">📨 Создать заявку</button>
+                    </form>
+                </div>
+
+                <!-- Мои заявки -->
+                <div class="tab-header">
+                    <h2>Мои заявки</h2>
+                    <button onclick="loadTickets()" class="btn-secondary">🔄 Обновить</button>
+                </div>
+                <div class="card">
+                    <div id="ticketsList">
+                        <p class="loading">Загрузка заявок...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка Инвентаризация -->
+            <div id="inventory-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2>📋 Инвентаризация АРМ</h2>
+                    <div class="filters">
+                        <input type="text" id="searchArms" placeholder="Поиск АРМ...">
+                    </div>
+                </div>
+                <div class="card">
+                    <div id="armsList">
+                        <p class="loading">Загрузка АРМ...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка Администрирование -->
+            <div id="admin-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2>⚙️ Администрирование</h2>
+                    <button onclick="showAddArmModal()" class="btn-primary">➕ Добавить АРМ</button>
+                </div>
+
+                <!-- Статистика -->
+                <div class="card">
+                    <h3>📊 Статистика системы</h3>
+                    <div id="adminStats" class="stats-grid">
+                        <!-- Статистика будет здесь -->
+                    </div>
+                </div>
+
+                <!-- Управление заявками -->
+                <div class="card">
+                    <h3>🎫 Управление заявками</h3>
+                    <div id="adminTicketsList">
+                        <p class="loading">Загрузка заявок...</p>
+                    </div>
+                </div>
+
+                <!-- Управление АРМ -->
+                <div class="card">
+                    <h3>🖥️ Управление АРМ</h3>
+                    <div id="adminArmsList">
+                        <p class="loading">Загрузка АРМ...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно добавления АРМ -->
+    <div id="addArmModal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close" onclick="closeAddArmModal()">&times;</span>
+            <h2>➕ Добавление АРМ</h2>
+            <form id="addArmForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Инвентарный номер:*</label>
+                        <input type="text" id="armInventoryNumber" required placeholder="INV-2024-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Название:*</label>
+                        <input type="text" id="armName" required placeholder="Рабочая станция бухгалтера">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Местоположение:*</label>
+                        <input type="text" id="armLocation" required placeholder="Кабинет 301, стол 1">
+                    </div>
+                    <div class="form-group">
+                        <label>Пользователь:*</label>
+                        <input type="text" id="armUser" required placeholder="Иванов Иван Иванович">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Отдел:*</label>
+                        <input type="text" id="armDepartment" required placeholder="Бухгалтерия">
+                    </div>
+                </div>
+
+                <h4>🛠️ Характеристики оборудования</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Процессор:</label>
+                        <input type="text" id="armCpu" placeholder="Intel Core i5-12400">
+                    </div>
+                    <div class="form-group">
+                        <label>Оперативная память:</label>
+                        <input type="text" id="armRam" placeholder="16GB DDR4">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Накопитель:</label>
+                        <input type="text" id="armStorage" placeholder="512GB SSD">
+                    </div>
+                    <div class="form-group">
+                        <label>Операционная система:</label>
+                        <input type="text" id="armOs" placeholder="Windows 11 Pro">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Монитор:</label>
+                        <input type="text" id="armMonitor" placeholder="Dell 24\" P2422H">
+                    </div>
+                    <div class="form-group">
+                        <label>Клавиатура/мышь:</label>
+                        <input type="text" id="armKeyboard" placeholder="Logitech MK270">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Дополнительное оборудование:</label>
+                    <input type="text" id="armAdditional" placeholder="Принтер HP LaserJet, Сканер Canon">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddArmModal()">Отмена</button>
+                    <button type="submit" class="btn-primary">Добавить АРМ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования АРМ -->
+    <div id="editArmModal" class="modal hidden">
+        <div class="modal-content large">
+            <span class="close" onclick="closeEditArmModal()">&times;</span>
+            <div id="editArmContent">
+                <!-- Контент будет заполнен через JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

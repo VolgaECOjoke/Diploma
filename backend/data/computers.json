@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ARM-001",
+    "inventory_number": "INV-2024-001",
+    "name": "Workstation Dev-1",
+    "user": "Иван Петров",
+    "department": "development",
+    "position": {
+      "x": 100,
+      "y": 150
+    },
+    "status": "operational",
+    "specs": {
+      "cpu": "Intel i7-12700K",
+      "ram": "32GB DDR4",
+      "storage": "1TB SSD",
+      "os": "Windows 11 Pro"
+    },
+    "ip": "192.168.1.101",
+    "last_maintenance": "2024-01-15"
+  },
+  {
+    "id": "ARM-002",
+    "inventory_number": "INV-2024-002",
+    "name": "Design Station-1",
+    "user": "Анна Сидорова",
+    "department": "design",
+    "position": {
+      "x": 300,
+      "y": 150
+    },
+    "status": "operational",
+    "specs": {
+      "cpu": "Apple M2 Pro",
+      "ram": "16GB Unified",
+      "storage": "512GB SSD",
+      "os": "macOS Ventura"
+    },
+    "ip": "192.168.1.102",
+    "last_maintenance": "2024-01-10"
+  }
+]
