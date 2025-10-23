@@ -1,6 +1,6 @@
 class ARMServiceDesk {
     constructor() {
-        this.apiBase = 'http://localhost:8000/api';
+        this.apiBase = window.location.origin + '/api';  // Автоматически определяем URL
         this.token = localStorage.getItem('arm_token');
         this.user = JSON.parse(localStorage.getItem('arm_user') || '{}');
         this.arms = [];
@@ -8,6 +8,8 @@ class ARMServiceDesk {
         
         this.init();
     }
+    // ... остальной код без изменений ...
+
 
     init() {
         this.setupEventListeners();

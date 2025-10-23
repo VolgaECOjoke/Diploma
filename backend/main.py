@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 import json
 import os
-import secrets
 from datetime import datetime
 from typing import Dict, Any
 
@@ -21,13 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Конфигурация
+# Конфигурация - правильные пути
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, '../frontend')
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 ARMS_FILE = os.path.join(DATA_DIR, 'arms.json')
 TICKETS_FILE = os.path.join(DATA_DIR, 'tickets.json')
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 
+# Создаем папки
 os.makedirs(DATA_DIR, exist_ok=True)
 
 # Модели данных
@@ -80,23 +81,23 @@ def load_data(filename):
             print(f"Ошибка загрузки: {e}")
     return []
 
-# Инициализация данных - ТОЛЬКО пользователи
+# Инициализация данных
 def init_data():
     # Пользователи
     if not os.path.exists(USERS_FILE):
         users = {
-            "user": "user123",  # Простой пароль для демо
+            "user": "user123",
             "admin": "admin123"
         }
         save_data(users, USERS_FILE)
         print("✅ Созданы пользователи: user/user123, admin/admin123")
 
-    # АРМ - ПУСТОЙ список, данные будут добавляться через интерфейс
+    # АРМ - пустой список
     if not os.path.exists(ARMS_FILE):
         save_data([], ARMS_FILE)
-        print("✅ Создан пустой файл АРМ - данные будут добавляться через веб-интерфейс")
+        print("✅ Создан пустой файл АРМ")
 
-    # Заявки - ПУСТОЙ список
+    # Заявки - пустой список
     if not os.path.exists(TICKETS_FILE):
         save_data([], TICKETS_FILE)
         print("✅ Создан пустой файл заявок")
@@ -128,14 +129,32 @@ def generate_ticket_id():
     tickets = load_data(TICKETS_FILE)
     return f"TICKET-{datetime.now().strftime('%Y%m%d')}-{len(tickets) + 1:03d}"
 
-# API Routes
+# Статические файлы - правильная настройка
 @app.get("/")
-async def serve_frontend():
-    return FileResponse(os.path.join(BASE_DIR, '../frontend/index.html'))
+async def serve_index():
+    index_path = os.path.join(FRONTEND_DIR, 'index.html')
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    else:
+        raise HTTPException(status_code=404, detail="index.html не найден")
 
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, '../frontend')), name="static")
+@app.get("/style.css")
+async def serve_css():
+    css_path = os.path.join(FRONTEND_DIR, 'style.css')
+    if os.path.exists(css_path):
+        return FileResponse(css_path, media_type='text/css')
+    else:
+        raise HTTPException(status_code=404, detail="style.css не найден")
 
-# Аутентификация
+@app.get("/app.js")
+async def serve_js():
+    js_path = os.path.join(FRONTEND_DIR, 'app.js')
+    if os.path.exists(js_path):
+        return FileResponse(js_path, media_type='application/javascript')
+    else:
+        raise HTTPException(status_code=404, detail="app.js не найден")
+
+# API Routes
 @app.post("/api/login")
 async def login(user_data: UserLogin):
     user = authenticate_user(user_data.username, user_data.password)
